@@ -17,14 +17,37 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Firebase must init before Crashlytics can catch anything.
-  await Firebase.initializeApp();
-  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+  try {
+    await Firebase.initializeApp();
+    FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+  } catch (e) {
+    debugPrint('Firebase init failed: $e');
+  }
 
-  await SupabaseService.init();
-  await NotificationService.instance.init();
-  await BillingService.instance.init(); // safe to fail silently before products are approved
+  try {
+    await SupabaseService.init();
+  } catch (e) {
+    debugPrint('Supabase init failed: $e');
+  }
 
-  final launchedFromSos = await WidgetService.launchedFromSosWidget();
+  try {
+    await NotificationService.instance.init();
+  } catch (e) {
+    debugPrint('Notification init failed: $e');
+  }
+
+  try {
+    await BillingService.instance.init(); 
+  } catch (e) {
+    debugPrint('Billing init failed: $e');
+  }
+
+  bool launchedFromSos = false;
+  try {
+    launchedFromSos = await WidgetService.launchedFromSosWidget();
+  } catch (e) {
+    debugPrint('Widget check failed: $e');
+  }
 
   runApp(
     ChangeNotifierProvider(
