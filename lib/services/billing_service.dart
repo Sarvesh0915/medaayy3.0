@@ -72,9 +72,9 @@ class BillingService {
           (o) => o.basePlanId == billingCycle,
           orElse: () => offers.first,
         );
-        offerToken = offer?.offerToken;
-      } catch (_) {
-        offerToken = null;
+        offerToken = offer?.pricingPhases.isNotEmpty == true 
+    ? offer!.pricingPhases.first.offerToken 
+    : null;
       }
     }
 
@@ -82,9 +82,9 @@ class BillingService {
     _pendingCompleters[productId] = completer;
 
     final param = GooglePlayPurchaseParam(
-      productDetails: product,
-      offerToken: offerToken,
-    );
+  productDetails: ...,
+  offerToken: offerToken, // Delete or comment out this line
+)
 
     try {
       await _iap.buyNonConsumable(purchaseParam: param);
