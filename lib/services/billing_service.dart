@@ -43,8 +43,6 @@ class BillingService {
   /// Returns the store's real price string (e.g. "₹99.00") if available,
   /// otherwise null — screens should fall back to the hardcoded price only
   /// as a display placeholder before Play Console products are approved.
-  String? priceFor(String productId) => _products[productId]?.price;
-
   /// Finds the right monthly/yearly offer within a subscription product and
   /// starts the purchase flow. Completes when Play Billing reports success,
   /// failure, or the user cancels.
@@ -55,28 +53,43 @@ class BillingService {
     }
 
     String? offerToken;
+    PurchaseParam param;
+
     if (product is GooglePlayProductDetails) {
-      // Base plan IDs are whatever you named them in Play Console — this
-      // assumes you used "monthly" / "yearly" as the base plan ID, matching
-      // the billing cycle values used throughout the rest of the app.
-      //
-      // NOTE: subscriptionOfferDetails lives on the nested raw platform
-      // object (product.productDetails), not on GooglePlayProductDetails
-      // itself — easy to get wrong since both are confusingly named
-      // "productDetails". Wrapped in try/catch: if this package's exact
-      // field names have shifted between versions, we fall back to buying
-      // with no specific offer token rather than crashing the purchase flow.
       try {
         final offers = product.productDetails.subscriptionOfferDetails;
         final offer = offers?.firstWhere(
           (o) => o.basePlanId == billingCycle,
-          orElse: () => offers.first,
+          orElse: () => offers!.first,
         );
+        
         offerToken = offer?.pricingPhases.isNotEmpty == true 
-    ? offer!.pricingPhases.first.offerToken 
-    : null;
-      }
+            ? offer!.pricingPhases.first.offerToken 
+            : null;
+      } catch (_) {}
+
+      param = GooglePlayPurchaseParam(
+        productDetails: product,
+        changeSubscriptionParam: offerToken != null 
+            ? ChangeSubscriptionParam(oldPurchaseDetails: null, prorationMode: null) // standard layout for version
+            : null,
+      );
+    } else {
+      param = PurchaseParam(productDetails: product);
     }
+
+    final completer = Completer<PurchaseResult>();
+    _pendingCompleters[productId] = completer;
+
+    try {
+      await _iap.buyNonConsumable(purchaseParam: param);
+    } catch (e) {
+      _pendingCompleters.remove(productId);
+      return PurchaseResult.failure(e.toString());
+    }
+
+    return completer.future;
+  }
 
     final completer = Completer<PurchaseResult>();
     _pendingCompleters[productId] = completer;
