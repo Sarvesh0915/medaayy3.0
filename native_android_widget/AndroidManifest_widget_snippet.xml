@@ -1,0 +1,15 @@
+<!--
+  Add this INSIDE <application> in android/app/src/main/AndroidManifest.xml
+  (alongside the permissions from android_manifest_additions.xml, which go
+  at the top level of <manifest> instead — different location, don't mix them up).
+-->
+<receiver
+    android:name=".SosWidgetProvider"
+    android:exported="false">
+    <intent-filter>
+        <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+    </intent-filter>
+    <meta-data
+        android:name="android.appwidget.provider"
+        android:resource="@xml/sos_widget_info" />
+</receiver>

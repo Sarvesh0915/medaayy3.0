@@ -1,0 +1,50 @@
+<!--
+  Add these inside the <manifest> tag of android/app/src/main/AndroidManifest.xml,
+  alongside whatever `flutter create` already generated there.
+-->
+
+<!--
+  Required on Android 11+ so canLaunchUrl() can actually detect the
+  ambulance app's custom scheme — without this, it always reports "not
+  installed" even when it is. Update the scheme to match
+  AmbulanceService._urlScheme once you've set the real one.
+-->
+<queries>
+  <intent>
+    <action android:name="android.intent.action.VIEW" />
+    <data android:scheme="ambulanceapp" />
+  </intent>
+</queries>
+
+<uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+<uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+<uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+<uses-permission android:name="android.permission.WAKE_LOCK" />
+<uses-permission android:name="android.permission.CAMERA" />
+<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+<uses-permission android:name="android.permission.INTERNET" />
+<uses-permission android:name="com.android.vending.BILLING" />
+
+<!--
+  Inside <application>, register the alarm-rebooting receiver so scheduled
+  alarms survive a phone restart (exact alarms do NOT survive reboot on
+  their own — this is the #1 cause of "the alarm just stopped working"):
+-->
+<receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">
+  <intent-filter>
+    <action android:name="android.intent.action.BOOT_COMPLETED"/>
+    <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+  </intent-filter>
+</receiver>
+
+<!--
+  Play Console will ask you to justify SCHEDULE_EXACT_ALARM and background
+  location usage in the Permissions Declaration form before publishing.
+  Suggested justification text:
+    "MedAayu schedules exact daily medicine reminder alarms chosen by the
+    user, and shares the user's location only when they manually trigger
+    the emergency SOS button, to help a family member locate them."
+-->
