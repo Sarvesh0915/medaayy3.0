@@ -27,7 +27,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 ///      entirely for a pre-login endpoint like this one.
 class OtpService {
   // TODO: replace with your deployed Edge Function base URL (see note above).
-  static const _baseUrl = 'https://YOUR-PROJECT.supabase.co/functions/v1/otp-verify';
+  static const _baseUrl = 'https://ptqsrehgftghnuhduqao.supabase.co/functions/v1/otp-verify';
 
   static const _anonKey = 'sb_publishable_s0SNO_RB0eJZ7L8RHG4Lmw_8DuNl_cc';
 
