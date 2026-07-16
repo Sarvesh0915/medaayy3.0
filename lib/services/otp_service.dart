@@ -45,16 +45,15 @@ class OtpService {
   }
 
   /// Evaluates the user input against the live generated security code string and provisions a Supabase user
+  /// Evaluates the user input against the live generated security code string and provisions a Supabase user session
   Future<(bool, String?)> verifyOtp(String phone, String code) async {
     try {
       if (_currentGeneratedOtp != null && code == _currentGeneratedOtp) {
-        // Signs the user in using Supabase's passwordless phone format natively
-        // Since the code was validated by your server, we create/sign in the user profile
-        final formattedPhone = phone.replaceAll('+', '').trim();
-        final completePhone = formattedPhone.startsWith('91') ? formattedPhone : '91$formattedPhone';
-
-        // Note: For a true production app, this step would exchange the code via your Supabase Edge Function 
-        // to securely sign a JWT token. This local check allows you to bypass the 404 block for now.
+        // Authenticates an anonymous session to prevent backend client queries from hanging
+        final client = Supabase.instance.client;
+        if (client.auth.currentSession == null) {
+          await client.auth.signInAnonymously();
+        }
         return (true, null);
       }
       return (false, 'Invalid verification code');
@@ -62,4 +61,3 @@ class OtpService {
       return (false, "Verification failed: $e");
     }
   }
-}
